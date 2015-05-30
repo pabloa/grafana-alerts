@@ -1,6 +1,5 @@
-A sample Python project
-=======================
+Grafana Alert Module
+====================
 
-A sample project that exists as an aid to the `Python Packaging User Guide
-<https://packaging.python.org>`_'s `Tutorial on Packaging and Distributing
-Projects <https://packaging.python.org/en/latest/distributing.html>`_.
+Based in Grafana Dashboards analyze the values and generates alerts if the
+hit predefined thresholds.

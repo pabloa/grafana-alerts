@@ -18,27 +18,29 @@ with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='sample',
+    name='grafana_alerts',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.2.0',
+    version='1.0.0.dev1',
 
-    description='A sample Python project',
+    description='Alerting Module to use with Grafana metrics.',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/pypa/sampleproject',
+    # TODO verify URL
+    url='https://github.com/pabloa98/grafana_alerts',
 
     # Author details
-    author='The Python Packaging Authority',
-    author_email='pypa-dev@googlegroups.com',
+    author='Pablo Alcaraz',
+    author_email='pabloa98@gmail.com',
 
     # Choose your license
-    license='MIT',
+    license='Apache License 2.0',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    # TODO Add correct values for this
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
@@ -48,24 +50,43 @@ setup(
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
-        'Topic :: Software Development :: Build Tools',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
+        'Topic :: Internet :: Log Analysis',
+        'Topic :: System :: Clustering',
+        'Topic :: System :: Monitoring',
 
         # Pick your license as you wish (should match "license" above)
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Apache Software License',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2',
+        # 'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+
+        'Operating System :: POSIX',
+        'Operating System :: POSIX :: AIX',
+        'Operating System :: POSIX :: BSD',
+        'Operating System :: POSIX :: BSD :: BSD/OS',
+        'Operating System :: POSIX :: BSD :: FreeBSD',
+        'Operating System :: POSIX :: BSD :: NetBSD',
+        'Operating System :: POSIX :: BSD :: OpenBSD',
+        'Operating System :: POSIX :: GNU Hurd',
+        'Operating System :: POSIX :: HP-UX',
+        'Operating System :: POSIX :: IRIX',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: POSIX :: Other',
+        'Operating System :: POSIX :: SunOS/Solaris',
+        'Operating System :: Unix',
     ],
 
     # What does your project relate to?
-    keywords='sample setuptools development',
+    keywords='grafana alerts grafana_alerts grafana-alerts monitoring cluster',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
@@ -89,6 +110,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
+    # TODO Verify this.
     package_data={
         'sample': ['package_data.dat'],
     },
@@ -97,14 +119,14 @@ setup(
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    data_files=[('my_data', ['data/data_file'])],
+    data_files=[('/etc/grafana_alerts', ['data/grafana_alerts.cfg'])],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'sample=sample:main',
+            'grafanaAlerts=grafana_alerts:main',
         ],
     },
 )

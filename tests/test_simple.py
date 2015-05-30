@@ -1,6 +1,6 @@
 import unittest
 
-import sample
+import grafana_alerts
 
 
 class TestSimple(unittest.TestCase):
