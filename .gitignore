@@ -40,3 +40,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# intellij files
+.idea
+grafana_alerts.iml
