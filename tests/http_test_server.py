@@ -1,3 +1,6 @@
+from threading import Thread
+import urllib2
+
 __author__ = 'pablo'
 
 import time
@@ -100,7 +103,20 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """pprint (vars(s.request))"""
 
 
-if __name__ == '__main__':
+def launch_webserver_in_new_thread():
+    print "Starting mocked grafana server in new thread..."
+    thread = Thread(target=launch_webserver_in_current_thread)
+    # thread.daemon(True)
+    thread.start()
+    print "Mocked grafana server started."
+
+def stop_webserver_in_new_thread():
+    print "Stopping mocked grafana server..."
+    urllib2.urlopen("http://{host_name}:{port_number}/quit".format(host_name=HOST_NAME,port_number=PORT_NUMBER)).read()
+    print "Mocked grafana server stopped."
+
+
+def launch_webserver_in_current_thread():
     server_class = BaseHTTPServer.HTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
     print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
@@ -113,4 +129,12 @@ if __name__ == '__main__':
     httpd.server_close()
     print time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER)
 
+
+
+
+if __name__ == '__main__':
+    # launch_webserver_in_current_thread()
+    launch_webserver_in_new_thread()
+    time.sleep(3)
+    stop_webserver_in_new_thread()
 
