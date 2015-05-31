@@ -1,7 +1,11 @@
 from threading import Thread
 import urllib2
 
-__author__ = 'pablo'
+__author__ = 'Pablo Alcaraz'
+__copyright__ = "Copyright 2015, Pablo Alcaraz"
+# __credits__ = ["Pablo Alcaraz"]
+__license__ = "Apache Software License V2.0"
+
 
 import time
 import BaseHTTPServer
