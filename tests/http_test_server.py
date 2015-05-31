@@ -106,7 +106,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 def launch_webserver_in_new_thread():
     print "Starting mocked grafana server in new thread..."
     thread = Thread(target=launch_webserver_in_current_thread)
-    # thread.daemon(True)
+    thread.setDaemon(True)
     thread.start()
     print "Mocked grafana server started."
 
