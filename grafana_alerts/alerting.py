@@ -6,6 +6,7 @@ import urllib2
 import json
 
 import jmespath
+from grafana_alerts.reporting import AlertReporter
 
 __author__ = 'Pablo Alcaraz'
 __copyright__ = "Copyright 2015, Pablo Alcaraz"
@@ -26,6 +27,7 @@ class AlertCheckerCoordinator:
     def check(self):
         """Check if there is something to report"""
         # Get all the dashboards to use for checking
+        self.alert_reporter = AlertReporter()
         scanner = DashboardScanner(self.configuration.get_grafana_url(), self.configuration.get_grafana_token())
         dashboard_data_list = scanner.obtain_dashboards()
         print dashboard_data_list
@@ -46,6 +48,12 @@ class AlertChecker:
     def set_alert_conditions(self, alert_conditions):
         self.alert_conditions = alert_conditions
 
+    def check(self):
+        pass
+
+    def get_reported_alerts(self):
+        return []
+
 
 class DashboardScanner:
     def __init__(self, grafana_url, grafana_token):
@@ -64,7 +72,8 @@ class DashboardScanner:
 
 
 class Dashboard:
-    def __init__(self, grafana_url, grafana_token, title, slug, tags):
+    def __init__(self, alert_reporter, grafana_url, grafana_token, title, slug, tags):
+        self.alert_reporter = alert_reporter
         self.grafana_url = grafana_url
         self.grafana_token = grafana_token
         self.title = title
@@ -74,6 +83,27 @@ class Dashboard:
     def check_metrics(self):
         """check metrics and return a list of triggered alerts."""
         dashboard_info = self._obtain_dashboard_rows()
+        alert_checkers = self._create_alert_checkers(dashboard_info)
+        for alert_checker in alert_checkers:
+            alert_checker.check()
+            alerts_to_report = alert_checker.get_reported_alerts()
+            self.alert_reporter.report(alerts_to_report)
+
+    def _obtain_dashboard_rows(self):
+        """Get a list of dashboard rows."""
+        request = urllib2.Request(self.grafana_url + _GRAFANA_URL_PATH_DASHBOARD.format(slug=self.slug),
+                                  headers={"Accept": "application/json",
+                                           "Authorization": "Bearer " + self.grafana_token})
+        contents = urllib2.urlopen(request).read()
+        # Fix \n inside json values.
+        contents = contents.replace('\r\n', '\\r\\n').replace('\n', '\\n')
+        print contents
+        data = json.loads(contents)
+        dashboard = jmespath.search('model.rows[*].panels[*]', data)
+        return dashboard
+
+    def _create_alert_checkers(self, dashboard_info):
+        """check metrics and return a list of alerts to evaluate."""
         for dashboard_row in dashboard_info:
             print dashboard_row
             # creates alert checkers from the row.
@@ -93,8 +123,6 @@ class Dashboard:
                     # print row['thresholds']
                     alert_checkers.append(alert_checker)
                 elif row['type'] == "text":
-                    print row['title']
-                    print row['content']
                     if row['title'] == 'alerts':
                         # read alert parameters to apply to all the alert checkers of this row.
                         for line in row['content'].splitlines():
@@ -109,17 +137,4 @@ class Dashboard:
                 # There are alert conditions, add them to all the alert_checkers.
                 for alert_checker in alert_checkers:
                     alert_checker.set_alert_conditions(alert_conditions)
-        return dashboard_info
-
-    def _obtain_dashboard_rows(self):
-        """Get a list of dashboard rows."""
-        request = urllib2.Request(self.grafana_url + _GRAFANA_URL_PATH_DASHBOARD.format(slug=self.slug),
-                                  headers={"Accept": "application/json",
-                                           "Authorization": "Bearer " + self.grafana_token})
-        contents = urllib2.urlopen(request).read()
-        # Fix \n inside json values.
-        contents = contents.replace('\r\n', '\\r\\n').replace('\n', '\\n')
-        print contents
-        data = json.loads(contents)
-        dashboard = jmespath.search('model.rows[*].panels[*]', data)
-        return dashboard
+        return alert_checkers
