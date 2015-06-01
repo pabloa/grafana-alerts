@@ -13,9 +13,12 @@ from pprint import pprint
 
 HOST_NAME = 'localhost'  # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 8000
+should_server_run = True
 
 def keep_running(running=True):
-    return running
+    global should_server_run
+    should_server_run = should_server_run and running
+    return should_server_run
 
 def dash_board_list_json_answer():
     """return list of dashboards (/api/search?limit=10&query=&tag=)"""
@@ -47,7 +50,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.end_headers()
             s.wfile.write(dash_board_list_json_answer())
 
-        # Get one dashboard
+        # Get one dashboard with slug = typrod-storage
         elif s.path == '/grafana/api/dashboards/db/typrod-storage':
             s.send_response(200)
             s.send_header("Content-type", "application/json; charset=UTF-8")
@@ -108,15 +111,23 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 def launch_webserver_in_new_thread():
+    global should_server_run
+    should_server_run = True
     print "Starting mocked grafana server in new thread..."
     thread = Thread(target=launch_webserver_in_current_thread)
     thread.setDaemon(True)
     thread.start()
     print "Mocked grafana server started."
+    return thread
 
 def stop_webserver_in_new_thread():
     print "Stopping mocked grafana server..."
-    urllib2.urlopen("http://{host_name}:{port_number}/quit".format(host_name=HOST_NAME,port_number=PORT_NUMBER)).read()
+    global should_server_run
+    should_server_run = False
+    try:
+        urllib2.urlopen("http://{host_name}:{port_number}/quit".format(host_name=HOST_NAME,port_number=PORT_NUMBER)).read()
+    except urllib2.URLError:
+        pass
     print "Mocked grafana server stopped."
 
 
@@ -127,7 +138,8 @@ def launch_webserver_in_current_thread():
     try:
         # httpd.serve_forever()
         while keep_running():
-            httpd.serve_forever()
+            httpd.handle_request()
+            # httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
