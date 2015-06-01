@@ -34,7 +34,7 @@ class AlertCheckerCoordinator:
         for d in dashboard_data_list:
             # {u'slug': u'typrod-storage', u'tags': [], u'isStarred': False, u'id': 4, u'title': u'TyProd Storage'}
             dashboard = Dashboard(d.title, d.slug, d.tags)
-            alert_list = dashboard.check_metrics()
+            alert_list = dashboard.obtain_alert_checkers()
             print alert_list
 
 
@@ -80,14 +80,11 @@ class Dashboard:
         self.slug = slug
         self.tags = tags
 
-    def check_metrics(self):
+    def obtain_alert_checkers(self):
         """check metrics and return a list of triggered alerts."""
         dashboard_info = self._obtain_dashboard_rows()
         alert_checkers = self._create_alert_checkers(dashboard_info)
-        for alert_checker in alert_checkers:
-            alert_checker.check()
-            alerts_to_report = alert_checker.get_reported_alerts()
-            self.alert_reporter.report(alerts_to_report)
+        return alert_checkers
 
     def _obtain_dashboard_rows(self):
         """Get a list of dashboard rows."""
