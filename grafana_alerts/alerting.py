@@ -7,7 +7,7 @@ import json
 
 import jmespath
 
-from grafana_alerts.reporting import AlertReporter, AlertEvaluationResult
+from grafana_alerts.reporting import AlertEvaluationResult
 
 __author__ = 'Pablo Alcaraz'
 __copyright__ = "Copyright 2015, Pablo Alcaraz"
@@ -42,9 +42,9 @@ class AlertCheckerCoordinator:
             # For each set of alert checkers, evaluate them
             for alert_checker in alert_checkers:
                 alert_checker.check()
-                alerts_to_report = alert_checker.get_reported_alerts()
-                # for each set of alerts, report them
-                self.alert_reporter.report(alerts_to_report)
+                reported_alerts = alert_checker.get_reported_alerts()
+                # for each set of reported alerts, report whatever is best
+                self.alert_reporter.report(reported_alerts)
 
 
 class AlertChecker:

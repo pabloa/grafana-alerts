@@ -102,12 +102,12 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         pprint(vars(s))
         # pprint(vars(s.connection))
         pprint(vars(s.headers))
-        pprint(vars(s.request))
-        pprint(vars(s.rfile))
-        pprint(vars(s.server))
-        pprint(vars(s.wfile))
-        pprint(vars(s.fp))
-        """pprint (vars(s.request))"""
+        # pprint(vars(s.request))
+        # pprint(vars(s.rfile))
+        # pprint(vars(s.server))
+        # pprint(vars(s.wfile))
+        # pprint(vars(s.fp))
+        # """pprint (vars(s.request))"""
 
 
 def launch_webserver_in_new_thread():
