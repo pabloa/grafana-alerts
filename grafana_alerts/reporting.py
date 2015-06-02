@@ -1,5 +1,6 @@
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import hashlib
 import smtplib
 import datetime
 
@@ -53,12 +54,13 @@ class BaseAlertReporter:
 
 
 class MailAlertReporter(BaseAlertReporter):
-    def __init__(self, email_from, smtp_server, smtp_port, email_username, email_password):
+    def __init__(self, email_from, smtp_server, smtp_port, email_username=None, email_password=None):
         self.email_from = email_from
         self.smtp_server = smtp_server
         self.smtp_port = smtp_port
         self.email_username = email_username
         self.email_password = email_password
+        self.sent_emails_counter = 0
 
     def report(self, reported_alerts):
         filtered_reported_alert = self._filter(reported_alerts=reported_alerts)
@@ -82,7 +84,8 @@ class MailAlertReporter(BaseAlertReporter):
             try:
                 key = eval("alert_evaluation_result." + group_by)
             except AttributeError:
-                key = eval("alert_evaluation_result.current_alert_condition_status['{group_by}']".format(group_by=group_by))
+                key = eval(
+                    "alert_evaluation_result.current_alert_condition_status['{group_by}']".format(group_by=group_by))
             if not consolidated_map.has_key(key):
                 consolidated_map[key] = []
             consolidated_map[key].append(alert_evaluation_result)
@@ -95,10 +98,12 @@ class MailAlertReporter(BaseAlertReporter):
             html_version_main = self._html_version_main()
             html_version_items = self._html_version_items(alert_evaluation_result_list)
             html_version = html_version_main.format(html_version_items=html_version_items,
+                                                    # TODO Externalize variables
                                                     date=datetime.datetime.now().strftime("%B %d, %Y"),
                                                     time=datetime.datetime.now().strftime("%I:%M %p"),
+                                                    message_signature=hashlib.sha256(html_version_main + html_version_items + datetime.datetime.now().strftime("%B %d, %Y - %I:%M %p")).hexdigest(),
                                                     companyName=""
-            )
+                                                    )
             # text_version = bs.get_text()
 
             # create email
@@ -106,8 +111,8 @@ class MailAlertReporter(BaseAlertReporter):
             # TODO calculate this value.
             email['Subject'] = "monitoring alert"
             email['From'] = self.email_from
-            email_to = email_to_string.split(',')
-            email['To'] = email_to
+            # email_to = email_to_string.split(',')
+            email['To'] = email_to_string
             # part_text = MIMEText(text_version, 'plain', 'utf-8')
             # email.attach(part_text)
             part_html = MIMEText(html_version, 'html', 'utf-8')
@@ -115,12 +120,13 @@ class MailAlertReporter(BaseAlertReporter):
 
             # send mail
             mail_server = smtplib.SMTP(host=self.smtp_server, port=self.smtp_port)
-            mail_server.login(self.email_username, self.email_password)
+            if self.email_username is not None:
+                mail_server.login(self.email_username, self.email_password)
             try:
-                mail_server.sendmail(self.email_from, email_to, email.as_string())
+                mail_server.sendmail(self.email_from, email_to_string, email.as_string())
+                self.sent_emails_counter += 1
             finally:
                 mail_server.close()
-
 
     def _html_version_items(self, alert_evaluation_result_list):
         html = ''
@@ -129,77 +135,26 @@ class MailAlertReporter(BaseAlertReporter):
             variables['target'] = alert_evaluation_result.target
             variables['value'] = alert_evaluation_result.value
             variables['alertName'] = alert_evaluation_result.current_alert_condition_status['name']
+            # variables['date'] = datetime.datetime.now().strftime("%B %d, %Y"),
+            # variables['time'] = datetime.datetime.now().strftime("%I:%M %p"),
             html_item = self._html_version_item().format(**variables)
             html += html_item
         return html
 
     def _html_version_item(self):
-        # TODO externalize
         """html version of the list of alert_evaluation_result_list."""
-        return """
-<table width="900" class="alert_color_{alertName}">
-    <tr>
-        <td>
-            {target} status is {alertName} for {title}
-        </td>
-    </tr>
-    <tr>
-        <td>
-            value of {title}: {value} / {condition}
-        </td>
-    </tr>
-</table>
-"""
-
+        with open("data/html_version_item.html", "r") as main_item_file:
+            main_item = main_item_file.read()
+            return main_item
 
     def _html_version_main(self):
-        # TODO externalize
         """html version of the email. It must returns everything except "html_version_items"""
-        return """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Alerts report</title>
-</head>
-<body style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif">
-<table width="900" cellpadding="0" cellspacing="0" align="center" border="0">
-    <tr height="80px" bgcolor="#D1E7F2">
-        <td style="padding-left:10px"><font size="+3" style="font-weight:bold;">Alert report</font></td>
-        <td align="right" style="padding-right:10px"><font size="+1" style="font-weight:bold;">{date} {time}</font></td>
-    </tr>
-</table>
-<div style="height:10px"></div>
-<table width="900" cellpadding="0" cellspacing="0" align="center" border="0">
-    <tr height="5px" bgcolor="#cff293">
-        <!--<td><img src="images/image.png" width="900" height="200" /></td>-->
-        <td></td>
-    </tr>
-</table>
-<div style="height:10px"></div>
-<table width="900" cellpadding="0" cellspacing="0" align="center" border="0">
-    <tr>
-        <td align="justify">{html_version_items}
-            <!--<br /><br /><a href="#">Read More</a><br /><br />-->
-        </td>
-    </tr>
-</table>
-<div style="height:10px"></div>
-<table width="900" cellpadding="0" cellspacing="0" align="center" border="0">
-    <tr height="5px" bgcolor="#cff293">
-        <!--<td><img src="images/image.png" width="900" height="200" /></td>-->
-        <td></td>
-    </tr>
-</table>
-<div style="height:10px"></div>
-<table width="900" cellpadding="0" cellspacing="0" align="center" border="0">
-    <tr bgcolor="#8DBDD4" style="color:#ffffff">
-    <td align="left" style="padding-left:10px; padding-top:15px; padding-bottom:15px;" valign="top"><font size="+1" style="font-weight:bold; color:#000000">{companyName}</font><br />
-        <!--.--></td>
-</table>
-<div style="height:10px"></div>
-</body>
-</html>
-"""
+        with open("data/html_version_main.html", "r") as main_text_file:
+            main_text = main_text_file.read()
+            return main_text
+
+    def get_sent_emails_counter(self):
+        return self.sent_emails_counter
 
 
 class ConsoleAlertReporter:
