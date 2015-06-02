@@ -6,7 +6,8 @@ import urllib2
 import json
 
 import jmespath
-from grafana_alerts.reporting import AlertReporter
+
+from grafana_alerts.reporting import AlertReporter, AlertEvaluationResult
 
 __author__ = 'Pablo Alcaraz'
 __copyright__ = "Copyright 2015, Pablo Alcaraz"
@@ -15,6 +16,7 @@ __license__ = "Apache Software License V2.0"
 
 _GRAFANA_URL_PATH_OBTAIN_DASHBOARDS = '/api/search?limit=10&query=&tag='
 _GRAFANA_URL_PATH_DASHBOARD = '/api/dashboards/db/{slug}'
+_GRAFANA_URL_PATH_OBTAIN_METRICS = '/api/datasources/proxy/1/render'
 
 
 class AlertCheckerCoordinator:
@@ -34,25 +36,104 @@ class AlertCheckerCoordinator:
         for d in dashboard_data_list:
             # {u'slug': u'typrod-storage', u'tags': [], u'isStarred': False, u'id': 4, u'title': u'TyProd Storage'}
             dashboard = Dashboard(d.title, d.slug, d.tags)
-            alert_list = dashboard.obtain_alert_checkers()
-            print alert_list
+            alert_checkers = dashboard.obtain_alert_checkers()
+            print alert_checkers
+
+            # For each set of alert checkers, evaluate them
+            for alert_checker in alert_checkers:
+                alert_checker.check()
+                alerts_to_report = alert_checker.get_reported_alerts()
+                # for each set of alerts, report them
+                self.alert_reporter.report(alerts_to_report)
 
 
 class AlertChecker:
     """Command to check metrics."""
 
-    def __init__(self, title, grafana_targets):
+    def __init__(self, grafana_url, grafana_token, title, grafana_targets):
+        self.grafana_url = grafana_url
+        self.grafana_token = grafana_token
         self.title = title
         self.grafana_targets = grafana_targets
+        self.checkedExecuted = False
+        self.responses = []
+        self.alert_conditions = None
 
     def set_alert_conditions(self, alert_conditions):
+        """Alerts conditions are composed by an array of elements.
+        each element is an array like:
+
+            [["interval1","status1","alert destination1","short description","long description"],
+            ["interval2","status2","alert destination2","short description","long description"],
+            ["intervaln","statusN","alert destinationN","short description","long description"]]
+
+        interval: string representing an interval like:
+            "x<=0": -infinite < x <= 0
+            "0<=x<50": [0;50)
+            "50<=x": 50 <= x < infinite
+
+        status: "normal", "warning", "critical"
+
+        alert destination: 1 or more emails separated by ","
+
+        example:
+            [["50<=x<=100", "normal", "p@q.com"],
+            ["50<x<=35", "warning", "p@q.com"],
+            ["35<=x", "critical", "p@q.com"]]
+        """
+        # TODO verify alert conditions are valid.
         self.alert_conditions = alert_conditions
 
     def check(self):
-        pass
+        """get metrics from grafana server"""
+        for grafana_target in self.grafana_targets:
+            if not grafana_target['hide']:
+                target = grafana_target['target']
+                # post_parameters = "target=aliasByNode(exclude(typrod.*.disk_free_percent_rootfs.sum, '__SummaryInfo__'), 1)&from=-60s&until=now&format=json&maxDataPoints=100"
+                post_parameters = "target={target}&from=-60s&until=now&format=json&maxDataPoints=100".format(
+                    target=target)
+                request = urllib2.Request(self.grafana_url + _GRAFANA_URL_PATH_OBTAIN_METRICS,
+                                          data=post_parameters,
+                                          headers={"Accept": "application/json",
+                                                   "Authorization": "Bearer " + self.grafana_token})
+
+                contents = urllib2.urlopen(request).read()
+                self.responses.append(json.loads(contents))
+        self.checkedExecuted = True
 
     def get_reported_alerts(self):
-        return []
+        alert_evaluation_result_list = []
+        if not self.checkedExecuted:
+            raise RuntimeError("method check() was not invoked, therefore there is nothing to report about. Fix it.")
+
+        if self.alert_conditions is None:
+            raise RuntimeError(
+                "method set_alert_conditions() was not invoked, therefore there is nothing to report about. Fix it.")
+
+        for response in self.responses:
+            # A grafana response could cover several sources/hosts.
+            for source in response:
+                alert_evaluation_result = AlertEvaluationResult(title=self.title, target=source['target'])
+                # for now 'x' is the average of all the data points.
+                data = [m[0] for m in source['datapoints']]
+                if len(data) > 0:
+                    x = float(sum(data)) / len(data)
+                else:
+                    x = float('nan')
+                alert_evaluation_result.set_current_value(x)
+
+                # evaluate all the alert conditions and create a current alert status.
+                for alert_condition in self.alert_conditions:
+                    condition = alert_condition[0]
+                    activated = eval(condition)
+                    alert_evaluation_result.add_alert_condition_result(name=alert_condition[1], condition=condition,
+                                                                       activated=activated,
+                                                                       alert_destination=alert_condition[2],
+                                                                       title=self.title)
+
+                alert_evaluation_result_list.append(alert_evaluation_result)
+
+        return alert_evaluation_result_list
 
 
 class DashboardScanner:
@@ -101,22 +182,22 @@ class Dashboard:
 
     def _create_alert_checkers(self, dashboard_info):
         """check metrics and return a list of alerts to evaluate."""
+        alert_checkers = []
         for dashboard_row in dashboard_info:
             print dashboard_row
             # creates alert checkers from the row.
             # TODO add alert checker creation to a builder dashboard_row2alert_checker_list.
             alert_conditions = []  # map of alert conditions( text -> alert parameters)
-            alert_checkers = []
             for row in dashboard_row:
                 print row
                 print row['type']
                 if row['type'] == "graph":
                     # print row['leftYAxisLabel']
                     # print row['y_formats']
-                    alert_checker = AlertChecker(row['title'], row['targets'])
+                    alert_checker = AlertChecker(self.grafana_url, self.grafana_token, row['title'], row['targets'])
                     alert_checkers.append(alert_checker)
                 elif row['type'] == "singlestat":
-                    alert_checker = AlertChecker(row['title'], row['targets'])
+                    alert_checker = AlertChecker(self.grafana_url, self.grafana_token, row['title'], row['targets'])
                     # print row['thresholds']
                     alert_checkers.append(alert_checker)
                 elif row['type'] == "text":
