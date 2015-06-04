@@ -1,6 +1,9 @@
+from collections import defaultdict
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import hashlib
+import os
+import pickle
 import smtplib
 import datetime
 
@@ -35,13 +38,6 @@ class AlertEvaluationResult:
             'alert_destination': alert_destination,
             'title': title
         }
-        # alert_condition_status = {
-        #     'name': alert_condition[1],
-        #     'condition': condition,
-        #     'activated': activated,
-        #     'alert_destination': alert_condition[2],
-        #     'title': self.title
-        # }
         self.alert_conditions[name] = alert_condition_status
         if alert_condition_status['activated']:
             # point to the activated alert condition status.
@@ -64,39 +60,103 @@ class MailAlertReporter(BaseAlertReporter):
 
     def report(self, reported_alerts):
         filtered_reported_alert = self._filter(reported_alerts=reported_alerts)
+        diff_report = self._generated_diff_report(filtered_reported_alert)
         # TODO keys should have better names.
-        alerts_to_send_map = self._consolidate(filtered_reported_alert, 'alert_destination')
+        alerts_to_send_map = self._group_by(diff_report, 'alert_destination')
         self._send(alerts_to_send_map)
 
     def _filter(self, reported_alerts):
-        # TODO filter by not normal
-        # TODO later filter by: if there is not persisted previous state ? not normal : state changed.
-        return reported_alerts;
+        # TODO Add filtering capabilites
+        return reported_alerts
 
-    def _consolidate(self, filtered_reported_alerts, group_by):
+    def _generated_diff_report(self, reported_alerts):
+        GRAFANA_MONITOR_STATE = '/tmp/grafana_monitor.state'
+        # read last state
+        old_alerts_state = {}
+        if os.path.isfile(GRAFANA_MONITOR_STATE):
+            with open(GRAFANA_MONITOR_STATE, 'r') as f:
+                old_alerts_state = pickle.load(f)
+
+        # collect current state
+        current_alerts_state = {}
+        for aer in reported_alerts:
+            key = "{target}, {title}, {alert_name}".format(target=aer.target, title=aer.title, alert_name=aer.current_alert_condition_status['name'])
+            # value = "{condition},{activated}".format(condition=aer.current_alert_condition_status['condition'], activated=aer.current_alert_condition_status['activated'])
+            value = aer
+            current_alerts_state[key] = value
+
+        # persist new state
+        with open(GRAFANA_MONITOR_STATE, 'w') as f:
+            pickle.dump(current_alerts_state, f)
+
+        # compare old with new state and generates report with 4 causes of diff: changed, lost, new, unchanged.
+        diff_report = []
+        for current_key, current_value in current_alerts_state.iteritems():
+            current_element = current_value
+            old_element = None
+            diff = 'new'
+            if old_alerts_state.has_key(current_key):
+                old_value = old_alerts_state[current_key]
+                old_element = old_value
+                if old_value.current_alert_conditions_status['condition'] != current_value.current_alert_conditions_status['condition'] or old_value.current_alert_conditions_status['activated'] != current_value.current_alert_conditions_status['activated']:
+                    # value in the alert is 'changed'
+                    diff = 'changed'
+                else:
+                    # value in the alert is 'unchanged'
+                    diff = 'unchanged'
+
+            # TODO Call this DTO AlertEvent
+            diff_report.append({
+                'diff_event': diff,
+                'old': old_element,
+                'current': current_element
+            })
+
+        for old_key, old_value in old_alerts_state.iteritems():
+            current_element = None
+            old_element = old_value
+            diff = 'lost'
+            if not current_alerts_state.has_key(old_key):
+                diff_report.append({
+                    'diff_event': diff,
+                    'old': old_element,
+                    'current': current_element
+                })
+
+        return diff_report
+
+
+    def _group_by(self, diff_report, group_by):
         """Given reported alerts evaluation results. Consolidates them by the given key.
         For example: 1 mail with a list of alerts groups by destination, etc.
         :return a map, the key is the field 'group_by', the value is a list of alert evaluation results.
         """
         consolidated_map = {}
 
-        for alert_evaluation_result in filtered_reported_alerts:
-            try:
+        for alert_event in diff_report:
+            # get the available version of alert_evaluation_result
+            alert_evaluation_result = alert_event['current']
+            if alert_evaluation_result is None:
+                alert_evaluation_result = alert_event['old']
+
+            # calculate the group key
+            key = alert_evaluation_result.current_alert_condition_status[group_by]
+            if key is None:
                 key = eval("alert_evaluation_result." + group_by)
-            except AttributeError:
-                key = eval(
-                    "alert_evaluation_result.current_alert_condition_status['{group_by}']".format(group_by=group_by))
+
+
+            # and add the alert_event to the consolidated map
             if not consolidated_map.has_key(key):
                 consolidated_map[key] = []
-            consolidated_map[key].append(alert_evaluation_result)
+            consolidated_map[key].append(alert_event)
         return consolidated_map
 
     def _send(self, alerts_to_send_map):
         """Send the alerts.
-        This version only supports grouping by email."""
-        for email_to_string, alert_evaluation_result_list in alerts_to_send_map.iteritems():
+        This version only supports lists grouped by email."""
+        for email_to_string, alert_event_list in alerts_to_send_map.iteritems():
             html_version_main = self._html_version_main()
-            html_version_items = self._html_version_items(alert_evaluation_result_list)
+            html_version_items = self._html_version_items(alert_event_list)
             html_version = html_version_main.format(html_version_items=html_version_items,
                                                     # TODO Externalize variables
                                                     date=datetime.datetime.now().strftime("%B %d, %Y"),
@@ -128,17 +188,50 @@ class MailAlertReporter(BaseAlertReporter):
             finally:
                 mail_server.close()
 
-    def _html_version_items(self, alert_evaluation_result_list):
+    def _html_version_items(self, alert_event_list):
+        """transform each alert_event in html."""
+        alert_event_style = {
+            'new': 'background-color: lightcyan',
+            'lost': 'background-color: lightgray',
+            'changed': 'background-color: lightgreen',
+            'unchanged':'background-color: white'}
+
+        alert_condition_style = {
+            'normal':'color: darkgreen',
+            'warning':'color: darkorange',
+            'critical':'color: darkred'
+        }
         html = ''
-        for alert_evaluation_result in alert_evaluation_result_list:
-            variables = alert_evaluation_result.current_alert_condition_status.copy()
-            variables['target'] = alert_evaluation_result.target
-            variables['value'] = alert_evaluation_result.value
-            variables['alertName'] = alert_evaluation_result.current_alert_condition_status['name']
-            # variables['date'] = datetime.datetime.now().strftime("%B %d, %Y"),
-            # variables['time'] = datetime.datetime.now().strftime("%I:%M %p"),
-            html_item = self._html_version_item().format(**variables)
-            html += html_item
+        for alert_event in alert_event_list:
+            if alert_event['diff_event'] != 'unchanged':
+                # TODO provide a better solution for undefined values
+                variables = {
+                    'old_target':'', 'old_alertName':'', 'old_title': '', 'old_value': '', 'old_condition':'',
+                    'current_target':'', 'current_alertName':'', 'current_title': '', 'current_value': '', 'current_condition':''
+                }
+                for version, alert_evaluation_result in {'old': alert_event['old'], 'current': alert_event['current']}.iteritems():
+                    if alert_evaluation_result is not None:
+                        for k, v in alert_evaluation_result.current_alert_condition_status.iteritems():
+                            variables[version + '_' + k] = v
+                            # add known value in case 'old' or 'current' values are null, it keeps the last value
+                            variables[k] = v
+                        variables[version + '_target'] = alert_evaluation_result.target
+                        variables[version + '_value'] = alert_evaluation_result.value
+                        variables[version + '_alertName'] = alert_evaluation_result.current_alert_condition_status['name']
+                        # variables['_date'] = datetime.datetime.now().strftime("%B %d, %Y"),
+                        # variables['_time'] = datetime.datetime.now().strftime("%I:%M %p"),
+                        # add known value in case 'old' or 'current' values are null, it keeps the last value
+                        variables['target'] = alert_evaluation_result.target
+                        variables['value'] = alert_evaluation_result.value
+                        variables['alertName'] = alert_evaluation_result.current_alert_condition_status['name']
+                variables['diff_event'] = alert_event['diff_event']
+
+                # add styles for diff_event and alert event
+                variables['alert_event_style'] = alert_event_style[variables['diff_event']]
+                variables['alert_condition_style'] = alert_condition_style[variables['alertName']]
+
+                html_item = self._html_version_item().format(**variables)
+                html += html_item
         return html
 
     def _html_version_item(self):
