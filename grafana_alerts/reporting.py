@@ -63,7 +63,7 @@ class MailAlertReporter(BaseAlertReporter):
         diff_report = self._generated_diff_report(filtered_reported_alert)
         # TODO keys should have better names.
         alerts_to_send_map = self._group_by(diff_report, 'alert_destination')
-        self._send(alerts_to_send_map)
+        self._send_alerts_if_any(alerts_to_send_map)
 
     def _filter(self, reported_alerts):
         # TODO Add filtering capabilites
@@ -98,7 +98,7 @@ class MailAlertReporter(BaseAlertReporter):
             if old_alerts_state.has_key(current_key):
                 old_value = old_alerts_state[current_key]
                 old_element = old_value
-                if old_value.current_alert_conditions_status['condition'] != current_value.current_alert_conditions_status['condition'] or old_value.current_alert_conditions_status['activated'] != current_value.current_alert_conditions_status['activated']:
+                if old_value.current_alert_condition_status['condition'] != current_value.current_alert_condition_status['condition'] or old_value.current_alert_condition_status['activated'] != current_value.current_alert_condition_status['activated']:
                     # value in the alert is 'changed'
                     diff = 'changed'
                 else:
@@ -112,10 +112,10 @@ class MailAlertReporter(BaseAlertReporter):
                 'current': current_element
             })
 
+        current_element = None
+        diff = 'lost'
         for old_key, old_value in old_alerts_state.iteritems():
-            current_element = None
             old_element = old_value
-            diff = 'lost'
             if not current_alerts_state.has_key(old_key):
                 diff_report.append({
                     'diff_event': diff,
@@ -151,10 +151,12 @@ class MailAlertReporter(BaseAlertReporter):
             consolidated_map[key].append(alert_event)
         return consolidated_map
 
-    def _send(self, alerts_to_send_map):
-        """Send the alerts.
+    def _send_alerts_if_any(self, alerts_to_send_map):
+        """Evaluate if there are news to send. If that is the case, send the alerts.
         This version only supports lists grouped by email."""
         for email_to_string, alert_event_list in alerts_to_send_map.iteritems():
+            if not self._is_something_to_report(alert_event_list):
+                continue
             html_version_main = self._html_version_main()
             html_version_items = self._html_version_items(alert_event_list)
             html_version = html_version_main.format(html_version_items=html_version_items,
@@ -248,6 +250,22 @@ class MailAlertReporter(BaseAlertReporter):
 
     def get_sent_emails_counter(self):
         return self.sent_emails_counter
+
+    def _is_something_to_report(self, alert_event_list):
+        """Return True if the alert should be sent."""
+        # TODO externalize this condition.
+        for alert_event in alert_event_list:
+            if alert_event['current'] is None:
+                return True
+            else:
+                if alert_event['current'].current_alert_condition_status['name'] != 'normal':
+                    return True
+            if alert_event['old'] is None:
+                return True
+            else:
+                if alert_event['old'].current_alert_condition_status['name'] != 'normal':
+                    return True
+        return False
 
 
 class ConsoleAlertReporter:
