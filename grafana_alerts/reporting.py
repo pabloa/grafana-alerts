@@ -205,7 +205,12 @@ class MailAlertReporter(BaseAlertReporter):
         }
         html = ''
         for alert_event in alert_event_list:
-            if alert_event['diff_event'] != 'unchanged':
+            # send alert_event only if something interesting happened.
+            if alert_event['diff_event'] != 'unchanged' \
+                    or alert_event['current'] is None \
+                    or alert_event['current'].current_alert_condition_status['name'] != 'normal' \
+                    or alert_event['old'] is None \
+                    or alert_event['old'].current_alert_condition_status['name'] != 'normal':
                 # TODO provide a better solution for undefined values
                 variables = {
                     'old_target':'', 'old_alertName':'', 'old_title': '', 'old_value': '', 'old_condition':'',
