@@ -14,7 +14,7 @@ __copyright__ = "Copyright 2015, Pablo Alcaraz"
 # __credits__ = ["Pablo Alcaraz"]
 __license__ = "Apache Software License V2.0"
 
-_GRAFANA_URL_PATH_OBTAIN_DASHBOARDS = 'api/search?limit=10&query=&tag='
+_GRAFANA_URL_PATH_OBTAIN_DASHBOARDS = 'api/search?limit=10&query=&tag=monitored'
 _GRAFANA_URL_PATH_DASHBOARD = 'api/dashboards/db/{slug}'
 _GRAFANA_URL_PATH_OBTAIN_METRICS = 'api/datasources/proxy/1/render'
 
