@@ -6,6 +6,8 @@ import os
 import pickle
 import smtplib
 import datetime
+import pkg_resources
+import grafana_alerts
 
 __author__ = 'Pablo Alcaraz'
 __copyright__ = "Copyright 2015, Pablo Alcaraz"
@@ -243,15 +245,11 @@ class MailAlertReporter(BaseAlertReporter):
 
     def _html_version_item(self):
         """html version of the list of alert_evaluation_result_list."""
-        with open("data/html_version_item.html", "r") as main_item_file:
-            main_item = main_item_file.read()
-            return main_item
+        return self._get_content_of_resource_file("../data/html_version_item.html")
 
     def _html_version_main(self):
         """html version of the email. It must returns everything except "html_version_items"""
-        with open("data/html_version_main.html", "r") as main_text_file:
-            main_text = main_text_file.read()
-            return main_text
+        return self._get_content_of_resource_file("../data/html_version_main.html")
 
     def get_sent_emails_counter(self):
         return self.sent_emails_counter
@@ -271,6 +269,10 @@ class MailAlertReporter(BaseAlertReporter):
                 if alert_event['old'].current_alert_condition_status['name'] != 'normal':
                     return True
         return False
+
+    def _get_content_of_resource_file(self, resource_file):
+        """read the file from the package resource and returns its content. File must exists."""
+        return pkg_resources.resource_string('grafana_alerts', resource_file)
 
 
 class ConsoleAlertReporter:
