@@ -46,7 +46,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -112,7 +112,7 @@ setup(
     # have to be included in MANIFEST.in as well.
     # TODO Verify this.
     package_data={
-        'sample': ['package_data.dat'],
+        'grafana_alerts': ['package_data.dat'],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
