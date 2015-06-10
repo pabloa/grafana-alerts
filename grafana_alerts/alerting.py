@@ -124,7 +124,7 @@ class AlertChecker:
             for source in response:
                 alert_evaluation_result = AlertEvaluationResult(title=self.title, target=source['target'])
                 # for now 'x' is the average of all the data points.
-                data = [m[0] for m in source['datapoints']]
+                data = [m[0] for m in source['datapoints'] if m[0] is not None]
                 if len(data) > 0:
                     x = float(sum(data)) / len(data)
                 else:
