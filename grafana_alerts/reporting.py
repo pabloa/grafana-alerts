@@ -82,7 +82,13 @@ class MailAlertReporter(BaseAlertReporter):
         # collect current state
         current_alerts_state = {}
         for aer in reported_alerts:
-            key = "{target}, {title}, {alert_name}".format(target=aer.target, title=aer.title, alert_name=aer.current_alert_condition_status['name'])
+            if aer.current_alert_condition_status is None:
+                # TODO This happens because we are not getting stats from grafana, perhaps server was reainstalled without monitoring tools?
+                # TODO generate a warning or something according to config definition.
+                aer_current_alert_condition_status_name = "None"
+            else:
+                aer_current_alert_condition_status_name = aer.current_alert_condition_status['name']
+            key = "{target}, {title}, {alert_name}".format(target=aer.target, title=aer.title, alert_name=aer_current_alert_condition_status_name)
             # value = "{condition},{activated}".format(condition=aer.current_alert_condition_status['condition'], activated=aer.current_alert_condition_status['activated'])
             value = aer
             current_alerts_state[key] = value
@@ -100,7 +106,10 @@ class MailAlertReporter(BaseAlertReporter):
             if old_alerts_state.has_key(current_key):
                 old_value = old_alerts_state[current_key]
                 old_element = old_value
-                if old_value.current_alert_condition_status['condition'] != current_value.current_alert_condition_status['condition'] or old_value.current_alert_condition_status['activated'] != current_value.current_alert_condition_status['activated']:
+                if old_value.current_alert_condition_status is None and current_value.current_alert_condition_status is None:
+                    # value in the alert is 'unchanged'
+                    diff = 'unchanged'
+                elif old_value.current_alert_condition_status['condition'] != current_value.current_alert_condition_status['condition'] or old_value.current_alert_condition_status['activated'] != current_value.current_alert_condition_status['activated']:
                     # value in the alert is 'changed'
                     diff = 'changed'
                 else:
@@ -142,7 +151,8 @@ class MailAlertReporter(BaseAlertReporter):
                 alert_evaluation_result = alert_event['old']
 
             # calculate the group key
-            key = alert_evaluation_result.current_alert_condition_status[group_by]
+            if alert_evaluation_result.current_alert_condition_status is not None:
+                key = alert_evaluation_result.current_alert_condition_status[group_by]
             if key is None:
                 key = eval("alert_evaluation_result." + group_by)
 
@@ -210,16 +220,19 @@ class MailAlertReporter(BaseAlertReporter):
             # send alert_event only if something interesting happened.
             if alert_event['diff_event'] != 'unchanged' \
                     or alert_event['current'] is None \
+                    or alert_event['current'].current_alert_condition_status is None \
                     or alert_event['current'].current_alert_condition_status['name'] != 'normal' \
                     or alert_event['old'] is None \
+                    or alert_event['old'].current_alert_condition_status is None \
                     or alert_event['old'].current_alert_condition_status['name'] != 'normal':
                 # TODO provide a better solution for undefined values
                 variables = {
                     'old_target':'', 'old_alertName':'', 'old_title': '', 'old_value': '', 'old_condition':'',
-                    'current_target':'', 'current_alertName':'', 'current_title': '', 'current_value': '', 'current_condition':''
+                    'current_target':'', 'current_alertName':'', 'current_title': '', 'current_value': '', 'current_condition':'',
+                    'alertName':'warning'
                 }
                 for version, alert_evaluation_result in {'old': alert_event['old'], 'current': alert_event['current']}.iteritems():
-                    if alert_evaluation_result is not None:
+                    if alert_evaluation_result is not None and alert_evaluation_result.current_alert_condition_status is not None:
                         for k, v in alert_evaluation_result.current_alert_condition_status.iteritems():
                             variables[version + '_' + k] = v
                             # add known value in case 'old' or 'current' values are null, it keeps the last value
@@ -260,6 +273,8 @@ class MailAlertReporter(BaseAlertReporter):
         for alert_event in alert_event_list:
             if alert_event['current'] is None:
                 return True
+            # elif alert_event['current'].current_alert_condition_status is None:
+            #     return True
             else:
                 if alert_event['current'].current_alert_condition_status['name'] != 'normal':
                     return True
