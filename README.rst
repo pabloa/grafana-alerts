@@ -5,6 +5,21 @@ Collects stats from a grafana server based in information available
 in Grafana Dashboards, compare those values to an alert table and
 throws alert emails in case it is needed.
 
+Sites
+-----
+
+Installation package: https://pypi.python.org/pypi/grafana_alerts
+
+Project Home: https://github.com/pabloa/grafana-alerts
+
+
+Installation
+------------
+::
+
+    pip install grafana-alerts
+
+
 Configuration
 -------------
 

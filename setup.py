@@ -29,8 +29,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    # TODO verify URL
-    url='https://github.com/pabloa98/grafana_alerts',
+    url='https://github.com/pabloa/grafana-alerts',
 
     # Author details
     author='Pablo Alcaraz',
