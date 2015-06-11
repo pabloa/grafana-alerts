@@ -1,4 +1,3 @@
-from collections import defaultdict
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import hashlib
@@ -7,11 +6,10 @@ import pickle
 import smtplib
 import datetime
 import pkg_resources
-import grafana_alerts
 
 __author__ = 'Pablo Alcaraz'
 __copyright__ = "Copyright 2015, Pablo Alcaraz"
-# __credits__ = ["Pablo Alcaraz"]
+# __credits__ = [""]
 __license__ = "Apache Software License V2.0"
 
 _GRAFANA_URL_PATH_OBTAIN_DASHBOARDS = '/api/search?limit=10&query=&tag='
@@ -58,6 +56,7 @@ class MailAlertReporter(BaseAlertReporter):
         self.smtp_port = smtp_port
         self.email_username = email_username
         self.email_password = email_password
+        # TODO remove
         self.sent_emails_counter = 0
 
     def report(self, reported_alerts):
@@ -192,15 +191,18 @@ class MailAlertReporter(BaseAlertReporter):
             part_html = MIMEText(html_version, 'html', 'utf-8')
             email.attach(part_html)
 
-            # send mail
-            mail_server = smtplib.SMTP(host=self.smtp_server, port=self.smtp_port)
-            if self.email_username is not None:
-                mail_server.login(self.email_username, self.email_password)
-            try:
-                mail_server.sendmail(self.email_from, email_to_string, email.as_string())
-                self.sent_emails_counter += 1
-            finally:
-                mail_server.close()
+            self._send_email(email, email_to_string)
+
+    def _send_email(self, email, email_to_string):
+        # send mail
+        mail_server = smtplib.SMTP(host=self.smtp_server, port=self.smtp_port)
+        if self.email_username is not None:
+            mail_server.login(self.email_username, self.email_password)
+        try:
+            mail_server.sendmail(self.email_from, email_to_string, email.as_string())
+            self.sent_emails_counter += 1
+        finally:
+            mail_server.close()
 
     def _html_version_items(self, alert_event_list):
         """transform each alert_event in html."""

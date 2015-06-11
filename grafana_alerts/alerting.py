@@ -11,7 +11,7 @@ from grafana_alerts.reporting import AlertEvaluationResult, MailAlertReporter
 
 __author__ = 'Pablo Alcaraz'
 __copyright__ = "Copyright 2015, Pablo Alcaraz"
-# __credits__ = ["Pablo Alcaraz"]
+# __credits__ = [""]
 __license__ = "Apache Software License V2.0"
 
 _GRAFANA_URL_PATH_OBTAIN_DASHBOARDS = 'api/search?limit=10&query=&tag=monitored'
@@ -98,7 +98,6 @@ class AlertChecker:
         for grafana_target in self.grafana_targets:
             if not grafana_target['hide']:
                 target = grafana_target['target']
-                # post_parameters = "target=aliasByNode(exclude(typrod.*.disk_free_percent_rootfs.sum, '__SummaryInfo__'), 1)&from=-60s&until=now&format=json&maxDataPoints=100"
                 post_parameters = "target={target}&from=-60s&until=now&format=json&maxDataPoints=100".format(
                     target=target)
                 request = urllib2.Request(self.grafana_url + _GRAFANA_URL_PATH_OBTAIN_METRICS,
@@ -123,7 +122,7 @@ class AlertChecker:
             # A grafana response could cover several sources/hosts.
             for source in response:
                 alert_evaluation_result = AlertEvaluationResult(title=self.title, target=source['target'])
-                # for now 'x' is the average of all the data points.
+                # for now 'x' is the average of all not null data points.
                 data = [m[0] for m in source['datapoints'] if m[0] is not None]
                 if len(data) > 0:
                     x = float(sum(data)) / len(data)

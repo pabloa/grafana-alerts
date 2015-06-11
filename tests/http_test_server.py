@@ -3,7 +3,7 @@ import urllib2
 
 __author__ = 'Pablo Alcaraz'
 __copyright__ = "Copyright 2015, Pablo Alcaraz"
-# __credits__ = ["Pablo Alcaraz"]
+# __credits__ = [""]
 __license__ = "Apache Software License V2.0"
 
 
@@ -11,7 +11,7 @@ import time
 import BaseHTTPServer
 from pprint import pprint
 
-HOST_NAME = 'localhost'  # !!!REMEMBER TO CHANGE THIS!!!
+HOST_NAME = 'localhost'
 PORT_NUMBER = 8000
 should_server_run = True
 
@@ -27,7 +27,6 @@ def dash_board_list_json_answer():
 
 def return_dash_board_json_answer():
     """return a dashboard (/api/dashboards/db/typrod-storage)"""
-    # return """{"meta":{"isStarred":false,"isHome":false,"isSnapshot":false,"slug":"typrod-storage","expires":"0001-01-01T00:00:00Z","created":"0001-01-01T00:00:00Z"},"model":{"annotations":{"list":[]},"editable":true,"hideControls":false,"id":4,"nav":[{"collapse":false,"enable":true,"notice":false,"now":true,"refresh_intervals":["5s","10s","30s","1m","5m","15m","30m","1h","2h","1d"],"status":"Stable","time_options":["5m","15m","1h","6h","12h","24h","2d","7d","30d"],"type":"timepicker"}],"originalTitle":"TyProd Storage","refresh":false,"rows":[{"collapse":false,"editable":true,"height":"250px","panels":[{"aliasColors":{},"bars":false,"datasource":null,"editable":true,"error":false,"fill":1,"grid":{"leftLogBase":1,"leftMax":null,"leftMin":0,"rightLogBase":1,"rightMax":null,"rightMin":null,"threshold1":null,"threshold1Color":"rgba(216, 200, 27, 0.27)","threshold2":null,"threshold2Color":"rgba(234, 112, 112, 0.22)"},"id":2,"leftYAxisLabel":"%","legend":{"alignAsTable":true,"avg":false,"current":true,"max":false,"min":false,"rightSide":true,"show":true,"total":false,"values":true},"lines":true,"linewidth":2,"links":[],"nullPointMode":"connected","percentage":false,"pointradius":5,"points":false,"renderer":"flot","rightYAxisLabel":"","seriesOverrides":[],"span":7,"stack":true,"steppedLine":false,"targets":[{"hide":false,"target":"aliasByNode(exclude(typrod.*.disk_free_percent_rootfs.sum, '__SummaryInfo__'), 1)"}],"timeFrom":null,"timeShift":null,"title":"diskspace free %","tooltip":{"shared":true,"value_type":"individual"},"type":"graph","x-axis":true,"y-axis":false,"y_formats":["short","short"]},{"cacheTimeout":null,"colorBackground":false,"colorValue":true,"colors":["rgba(245, 54, 54, 0.9)","rgba(237, 129, 40, 0.89)","rgba(50, 172, 45, 0.97)"],"editable":true,"error":false,"format":"percent","id":3,"interval":null,"links":[],"maxDataPoints":100,"nullPointMode":"connected","nullText":null,"postfix":"","postfixFontSize":"50%","prefix":"","prefixFontSize":"50%","span":2,"sparkline":{"fillColor":"rgba(31, 118, 189, 0.18)","full":true,"lineColor":"rgb(31, 120, 193)","show":true},"targets":[{"hide":false,"target":"typrod.cassandrainstance.disk_free_percent_rootfs.sum"}],"thresholds":"0,20,35","title":"disk space free %","type":"singlestat","valueFontSize":"80%","valueMaps":[{"op":"=","text":"eee","value":"80"}],"valueName":"current"},{"content":"alerts\n50,normal,pablo+normal@ailive.net\n35,warning,pablo+warning@ailive.net\n20,critical,pablo+critical@ailive.net","editable":true,"error":false,"id":4,"links":[],"mode":"markdown","span":3,"style":{},"title":"alerts","type":"text"}],"title":"Row"}],"schemaVersion":6,"sharedCrosshair":false,"style":"dark","tags":[],"templating":{"list":[]},"time":{"from":"now-6h","to":"now"},"timezone":"browser","title":"TyProd Storage","version":10}}"""
     return """{"meta":{"isStarred":false,"isHome":false,"isSnapshot":false,"slug":"typrod-storage","expires":"0001-01-01T00:00:00Z","created":"0001-01-01T00:00:00Z"},"model":{"annotations":{"list":[]},"editable":true,"hideControls":false,"id":4,"nav":[{"collapse":false,"enable":true,"notice":false,"now":true,"refresh_intervals":["5s","10s","30s","1m","5m","15m","30m","1h","2h","1d"],"status":"Stable","time_options":["5m","15m","1h","6h","12h","24h","2d","7d","30d"],"type":"timepicker"}],"originalTitle":"TyProd Storage","refresh":false,"rows":[{"collapse":false,"editable":true,"height":"250px","panels":[{"aliasColors":{},"bars":false,"datasource":null,"editable":true,"error":false,"fill":1,"grid":{"leftLogBase":1,"leftMax":null,"leftMin":0,"rightLogBase":1,"rightMax":null,"rightMin":null,"threshold1":null,"threshold1Color":"rgba(216, 200, 27, 0.27)","threshold2":null,"threshold2Color":"rgba(234, 112, 112, 0.22)"},"id":2,"leftYAxisLabel":"%","legend":{"alignAsTable":true,"avg":false,"current":true,"max":false,"min":false,"rightSide":true,"show":true,"total":false,"values":true},"lines":true,"linewidth":2,"links":[],"nullPointMode":"connected","percentage":false,"pointradius":5,"points":false,"renderer":"flot","rightYAxisLabel":"","seriesOverrides":[],"span":7,"stack":true,"steppedLine":false,"targets":[{"hide":false,"target":"aliasByNode(exclude(typrod.*.disk_free_percent_rootfs.sum, '__SummaryInfo__'), 1)"}],"timeFrom":null,"timeShift":null,"title":"diskspace free %","tooltip":{"shared":true,"value_type":"individual"},"type":"graph","x-axis":true,"y-axis":false,"y_formats":["short","short"]},{"cacheTimeout":null,"colorBackground":false,"colorValue":true,"colors":["rgba(245, 54, 54, 0.9)","rgba(237, 129, 40, 0.89)","rgba(50, 172, 45, 0.97)"],"editable":true,"error":false,"format":"percent","id":3,"interval":null,"links":[],"maxDataPoints":100,"nullPointMode":"connected","nullText":null,"postfix":"","postfixFontSize":"50%","prefix":"","prefixFontSize":"50%","span":2,"sparkline":{"fillColor":"rgba(31, 118, 189, 0.18)","full":true,"lineColor":"rgb(31, 120, 193)","show":true},"targets":[{"hide":false,"target":"typrod.cassandrainstance.disk_free_percent_rootfs.sum"}],"thresholds":"0,20,35","title":"disk space free %","type":"singlestat","valueFontSize":"80%","valueMaps":[{"op":"=","text":"eee","value":"80"}],"valueName":"current"},{"content":"50\u003c=x\u003c=100; normal; pablo@ailive.net, sid@ailive.net\n\n35\u003cx\u003c50; warning; pablo@ailive.net\n\nx\u003c=35; critical; engr@ailive.net","editable":true,"error":false,"id":4,"links":[],"mode":"markdown","span":3,"style":{},"title":"alerts","type":"text"}],"title":"Row"}],"schemaVersion":6,"sharedCrosshair":false,"style":"dark","tags":[],"templating":{"list":[]},"time":{"from":"now-6h","to":"now"},"timezone":"browser","title":"TyProd Storage","version":10}}"""
 
 
@@ -45,7 +44,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(s):
         """Respond to a GET request."""
         # All the dashboards
-        if s.path == '/grafana/api/search?limit=10&query=&tag=':
+        if s.path == '/grafana/api/search?limit=10&query=&tag=monitored':
             s.send_response(200)
             s.send_header("Content-type", "application/json; charset=UTF-8")
             s.end_headers()
@@ -73,8 +72,6 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.wfile.write(
                 "<body><p>" + s.path +
                 "</p><form action='.' method='POST'><input name='x' value='1' /><input type='submit' /></form><p>This is a test.</p>")
-            # If someone went to "http://something.somewhere.net/foo/bar/",
-            # then s.path equals "/foo/bar/".
             s.wfile.write("<p>GET: You accessed path: %s</p>" % s.path)
             s.wfile.write("</body></html>")
         pprint(vars(s))
@@ -102,14 +99,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.wfile.write("<p>POST: You accessed path: %s</p>" % s.path)
             s.wfile.write("</body></html>")
         pprint(vars(s))
-        # pprint(vars(s.connection))
         pprint(vars(s.headers))
-        # pprint(vars(s.request))
-        # pprint(vars(s.rfile))
-        # pprint(vars(s.server))
-        # pprint(vars(s.wfile))
-        # pprint(vars(s.fp))
-        # """pprint (vars(s.request))"""
 
 
 def launch_webserver_in_new_thread():

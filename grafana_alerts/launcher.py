@@ -5,7 +5,7 @@ from grafana_alerts.alerting import AlertCheckerCoordinator
 
 __author__ = 'Pablo Alcaraz'
 __copyright__ = "Copyright 2015, Pablo Alcaraz"
-# __credits__ = ["Pablo Alcaraz"]
+# __credits__ = [""]
 __license__ = "Apache Software License V2.0"
 
 
