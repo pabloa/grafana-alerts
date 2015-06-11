@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Alerts report</title>
+</head>
+<body style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif">
+<style type="text/css">
+    .alert_event_new {{
+        background-color: lightcyan
+    }}
+
+    .alert_event_lost {{
+        background-color: lightgray
+    }}
+
+    .alert_event_changed {{
+        background-color: lightgreen
+    }}
+
+    .alert_event_unchanged {{
+        background-color: white
+    }}
+
+    .alert_condition_normal {{
+    /*text-decoration-color: darkgreen*/
+        background-color: darkgreen
+    }}
+
+    .alert_condition_warning {{
+    /*text-decoration-color: darkorange*/
+        background-color: darkorange
+    }}
+
+    .alert_condition_critical {{
+    /*text-decoration-color: darkred*/
+        color: orangered;
+    }}
+</style>
+<table width="600" cellpadding="0" cellspacing="0" align="center" border="0">
+    <tr height="80px" bgcolor="#D1E7F2">
+        <td style="padding-left:10px"><font size="+3" style="font-weight:bold;">Alert report</font></td>
+        <td align="right" style="padding-right:10px"><font size="+1" style="font-weight:bold;">{date} {time}</font></td>
+    </tr>
+</table>
+<div style="height:10px"></div>
+<table width="600" cellpadding="0" cellspacing="0" align="center" border="0">
+    <tr height="5px" bgcolor="#cff293">
+        <td></td>
+    </tr>
+</table>
+<div style="height:10px"></div>
+<table width="600" cellpadding="0" cellspacing="0" align="center" border="0">
+    <tr>
+        <td align="justify">{html_version_items}
+        </td>
+    </tr>
+</table>
+<div style="height:10px"></div>
+<table width="600" cellpadding="0" cellspacing="0" align="center" border="0">
+    <tr height="5px" bgcolor="#cff293">
+        <td></td>
+    </tr>
+</table>
+<div style="height:10px"></div>
+<table width="600" cellpadding="0" cellspacing="0" align="center" border="0">
+    <tr bgcolor="#8DBDD4" style="color:#ffffff">
+    <td align="left" style="padding-left:10px; padding-top:15px; padding-bottom:15px;" valign="top"><font size="+1" style="font-weight:bold; color:#000000">{companyName}</font><br />
+        Sent at {date} {time} <br /> message_signature {message_signature}
+    </td>
+</table>
+<div style="height:10px"></div>
+</body>
+</html>

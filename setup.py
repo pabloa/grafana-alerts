@@ -23,7 +23,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0.dev1',
+    version='1.0.0.dev2',
 
     description='Alerting Module to use with Grafana metrics.',
     long_description=long_description,
@@ -95,7 +95,10 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['peppercorn'],
+    install_requires=[
+        'peppercorn',
+        'jmespath>=0.6.1'
+    ],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -111,14 +114,18 @@ setup(
     # have to be included in MANIFEST.in as well.
     # TODO Verify this.
     package_data={
-        'grafana_alerts': ['package_data.dat'],
+        'grafana_alerts': ['package_data.dat', '*.html'],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    data_files=[('/etc/grafana_alerts', ['data/grafana_alerts.cfg'])],
+    data_files=[
+        ('/etc/grafana_alerts', ['data/grafana_alerts.cfg']),
+        # ('grafana_alerts/data', ['data/html_version_item.html', 'data/html_version_main.html'])
+    ],
+    # data_files=[('/etc/grafana_alerts', ['data/*'])],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow

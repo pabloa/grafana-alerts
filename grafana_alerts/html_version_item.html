@@ -1,0 +1,34 @@
+<table width="600">
+    <tr>
+        <td style="{alert_event_style}">
+            '{target}' status is '{diff_event}' for '{title}'
+        </td>
+    </tr>
+    <tr>
+        <td style="{alert_condition_style}">
+            <table width="600">
+                <tr>
+                    <td>before</td>
+                    <td>event</td>
+                    <td>current</td>
+                </tr>
+                <tr>
+                    <td>
+                        {old_target} status is {old_alertName} for {old_title}
+                        <br />
+                        value of {title}: {old_value} / {old_condition}
+                    </td>
+                    <td>
+                        {diff_event}
+                    </td>
+                    <td>
+                        {current_target} status is {current_alertName} for {current_title}
+                        <br />
+                        value of {current_title}: {current_value} / {current_condition}
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+

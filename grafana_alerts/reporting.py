@@ -260,11 +260,15 @@ class MailAlertReporter(BaseAlertReporter):
 
     def _html_version_item(self):
         """html version of the list of alert_evaluation_result_list."""
-        return self._get_content_of_resource_file("../data/html_version_item.html")
+        # TODO review where the template is stored and how path is solved
+        # return self._get_content_of_resource_file("../data/html_version_item.html")
+        return self._get_content_of_resource_file("html_version_item.html")
 
     def _html_version_main(self):
         """html version of the email. It must returns everything except "html_version_items"""
-        return self._get_content_of_resource_file("../data/html_version_main.html")
+        # TODO review where the template is stored and how path is solved
+        # return self._get_content_of_resource_file("../data/html_version_main.html")
+        return self._get_content_of_resource_file("html_version_main.html")
 
     def get_sent_emails_counter(self):
         return self.sent_emails_counter

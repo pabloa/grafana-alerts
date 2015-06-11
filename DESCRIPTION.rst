@@ -12,12 +12,20 @@ Installation package: https://pypi.python.org/pypi/grafana_alerts
 
 Project Home: https://github.com/pabloa/grafana-alerts
 
+Issues amd bugs: https://github.com/pabloa/grafana-alerts/issues
+
 
 Installation
 ------------
 ::
 
-    pip install grafana-alerts
+    sudo pip install grafana-alerts
+
+if you get an error, perhaps it is because the version available is a development
+version. In this case try with::
+
+    sudo pip install --pre grafana-alerts
+
 
 
 Configuration
