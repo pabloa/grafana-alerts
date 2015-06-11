@@ -1,13 +1,51 @@
-A sample Python project
-=======================
+Grafana Alert Module
+====================
 
-This is the description file for the project.
+Collects stats from a grafana server based in information available
+in Grafana Dashboards, compare those values to an alert table and
+throws alert emails in case it is needed.
 
-The file should use UTF-8 encoding and be written using ReStructured Text. It
-will be used to generate the project webpage on PyPI, and should be written for
-that purpose.
+Configuration
+-------------
 
-Typical contents for this file would include an overview of the project, basic
-usage examples, etc. Generally, including the project changelog in here is not
-a good idea, although a simple "What's New" section for the most recent version
-may be appropriate.
+Create a file /etc/grafana_alerts/grafana_alerts.cfg
+with
+
+#
+# Grafana alerts configuration file.
+#
+
+# The URL where grafana server is listening. It must finish with the character '/' (default value: http://localhost:3130)
+grafana_url = http://yourgrafanaserver.com/grafana/
+
+# Grafana token with viewer access (default value: empty string)
+grafana_token = qwertysDssdsfsfsdfSFsfsfEWrwrwERwrewrwrWeRwRwerWRwERwerWRwerweRwrEWrWErwerWeRwRwrewerr==
+
+# email to use as alert sender (default value: grafana-alert@localhost)
+email_from = alert@example.com
+
+# smtp server to use (default value: localhost)
+smtp_server = localhost
+
+# smtp server host to use (default value: 25)
+smtp_port = 25
+
+
+
+Mark your grafana boards with the tag "monitored"
+
+In each monitored Dashboard, add a text panel with title 'alerts' and a description of your alerts. For example:
+
+50<=x<=100; normal; server@example.com
+
+35<x<50; warning; server-mantainers@example.com
+
+x<=35; critical; server-mantainers@example.com, sysop@example.com
+
+values depends of the graph in that dashboard. x is mandatory.
+
+
+Add a cron task to execute grafana_alerts for example each 3 minutes:
+
+*/3 * * * *     grafana_alerts
+
