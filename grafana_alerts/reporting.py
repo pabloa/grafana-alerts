@@ -196,6 +196,8 @@ class MailAlertReporter(BaseAlertReporter):
     def _send_email(self, email, email_to_string):
         # send mail
         mail_server = smtplib.SMTP(host=self.smtp_server, port=self.smtp_port)
+        if int(self.smtp_port) != 25:
+            mail_server.starttls()
         if self.email_username is not None:
             mail_server.login(self.email_username, self.email_password)
         try:

@@ -29,7 +29,7 @@ class AlertCheckerCoordinator:
     def __init__(self, configuration):
         self.configuration = configuration
         self.queue = JoinableQueue()
-        self.alert_reporter = MailAlertReporter(email_from=self.configuration.email_from, smtp_server=self.configuration.smtp_server, smtp_port=self.configuration.smtp_port)
+        self.alert_reporter = MailAlertReporter(email_from=self.configuration.email_from, smtp_server=self.configuration.smtp_server, smtp_port=self.configuration.smtp_port, email_username=self.configuration.smtp_username, email_password=self.configuration.smtp_password)
 
     def check(self):
         """Check if there is something to report"""

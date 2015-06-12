@@ -26,6 +26,8 @@ class Configuration:
         self.email_from = "grafana-alert@localhost"
         self.smtp_server = "localhost"
         self.smtp_port = 25
+        self.smtp_username = None
+        self.smtp_password = None
         self.read_config()
 
     def read_config(self):
