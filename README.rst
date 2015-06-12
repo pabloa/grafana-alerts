@@ -60,7 +60,16 @@ with::
     # smtp server password to use if it is needed. Optional. Leave it commented if not used. (default value: no password)
     #smtp_password = my_smtp_password
 
-Mark your grafana boards with the tag "monitored"
+
+Add a cron task to execute grafana_alerts for example each 3 minutes:::
+
+    */3 * * * *     grafana_alerts
+
+
+Monitoring Dashboards
+---------------------
+
+Dashboards to be monitored for alerts must be marked with the tag "monitored"
 
 In each monitored Dashboard, add a text panel with title 'alerts' and a description of your alerts. For example:::
 
@@ -76,8 +85,7 @@ Notes:
 * values depend of the graph in that dashboard.
 * x is mandatory.
 
+.. image::https://drive.google.com/a/ailive.net/file/d/0B1LiPvzYYFN0TTlBRnFlTG5Ya1E/view?pli=1
 
-Add a cron task to execute grafana_alerts for example each 3 minutes:::
-
-    */3 * * * *     grafana_alerts
+Here is an example: https://drive.google.com/a/ailive.net/file/d/0B1LiPvzYYFN0TTlBRnFlTG5Ya1E/view?pli=1
 
