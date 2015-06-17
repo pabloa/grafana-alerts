@@ -85,9 +85,9 @@ Notes:
 * values depend of the graph in that dashboard.
 * x is mandatory.
 
-Here is an example:
+Here is an example: 
 
-![](https://drive.google.com/a/ailive.net/file/d/0B1LiPvzYYFN0TTlBRnFlTG5Ya1E/view?pli=1)
+https://drive.google.com/a/ailive.net/file/d/0B1LiPvzYYFN0TTlBRnFlTG5Ya1E/view?pli=1
 
 
 

@@ -87,7 +87,7 @@ Notes:
 
 Here is an example: 
 
-![](https://drive.google.com/a/ailive.net/file/d/0B1LiPvzYYFN0TTlBRnFlTG5Ya1E/view?pli=1)
+https://drive.google.com/a/ailive.net/file/d/0B1LiPvzYYFN0TTlBRnFlTG5Ya1E/view?pli=1
 
 
 
