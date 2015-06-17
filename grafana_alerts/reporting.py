@@ -5,6 +5,7 @@ import os
 import pickle
 import smtplib
 import datetime
+
 import pkg_resources
 
 __author__ = 'Pablo Alcaraz'
@@ -17,7 +18,7 @@ _GRAFANA_URL_PATH_DASHBOARD = '/api/dashboards/db/{slug}'
 
 
 class AlertEvaluationResult:
-    """Alert evaluation information. All the information needed to decide if an email will be sent and the information
+    """Alert evaluation information. All the information needed to decide if an alert should be sent and the information
     to send should be here."""
 
     def __init__(self, title, target):
@@ -31,6 +32,7 @@ class AlertEvaluationResult:
         self.value = value
 
     def add_alert_condition_result(self, name, condition, activated, alert_destination, title):
+        # TODO Alert condition result should have a type and others values based on type. Ot they could be a class...
         alert_condition_status = {
             'name': name,
             'condition': condition,
@@ -60,17 +62,21 @@ class MailAlertReporter(BaseAlertReporter):
         self.sent_emails_counter = 0
 
     def report(self, reported_alerts):
-        filtered_reported_alert = self._filter(reported_alerts=reported_alerts)
+        """filter the reported alerts by the configured criteria and if there is some alert to send,
+        then it reports it"""
+        filtered_reported_alert = self._filter_current_reported_alerts(reported_alerts=reported_alerts)
         diff_report = self._generated_diff_report(filtered_reported_alert)
         # TODO keys should have better names.
         alerts_to_send_map = self._group_by(diff_report, 'alert_destination')
         self._send_alerts_if_any(alerts_to_send_map)
 
-    def _filter(self, reported_alerts):
+    def _filter_current_reported_alerts(self, reported_alerts):
+        """Filter current reported alerts"""
         # TODO Add filtering capabilites
         return reported_alerts
 
     def _generated_diff_report(self, reported_alerts):
+        """Compares current alert list with the last one and creates a diff object"""
         GRAFANA_MONITOR_STATE = '/tmp/grafana_monitor.state'
         # read last state
         old_alerts_state = {}

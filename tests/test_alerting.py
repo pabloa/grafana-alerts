@@ -80,7 +80,7 @@ class AlertCheckerTest(BaseAlertingTest):
 
         # when
         alert_checker.check()
-        reported_alerts = alert_checker.get_reported_alerts()
+        reported_alerts = alert_checker.calculate_reported_alerts()
         print reported_alerts
 
         # then

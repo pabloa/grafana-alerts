@@ -17,7 +17,7 @@ class Launcher:
 
 
 class Configuration:
-    """Store configuration."""
+    """Configuration."""
 
     def __init__(self):
         # TODO make sure the url finishes with '/' or requests could fail.

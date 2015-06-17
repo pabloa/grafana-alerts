@@ -1,7 +1,4 @@
-"""Alerts
-
-"""
-from multiprocessing.queues import JoinableQueue
+"""Alerts"""
 import urllib2
 import json
 
@@ -28,8 +25,11 @@ class AlertCheckerCoordinator:
 
     def __init__(self, configuration):
         self.configuration = configuration
-        self.queue = JoinableQueue()
-        self.alert_reporter = MailAlertReporter(email_from=self.configuration.email_from, smtp_server=self.configuration.smtp_server, smtp_port=self.configuration.smtp_port, email_username=self.configuration.smtp_username, email_password=self.configuration.smtp_password)
+        self.alert_reporter = MailAlertReporter(email_from=self.configuration.email_from,
+                                                smtp_server=self.configuration.smtp_server,
+                                                smtp_port=self.configuration.smtp_port,
+                                                email_username=self.configuration.smtp_username,
+                                                email_password=self.configuration.smtp_password)
 
     def check(self):
         """Check if there is something to report"""
@@ -48,11 +48,11 @@ class AlertCheckerCoordinator:
                 # For each set of alert checkers, evaluate them
                 for alert_checker in alert_checkers:
                     alert_checker.check()
-                    reported_alerts = alert_checker.get_reported_alerts()
+                    reported_alerts = alert_checker.calculate_reported_alerts()
                     # for each set of reported alerts, report whatever is best
                     self.alert_reporter.report(reported_alerts)
             except NotMonitoreableDashboard as e:
-                print "Dashboard {title} cannot be monitored. Reason: {reason}".format(title = d['title'], reason=e.message)
+                print "Dashboard {title} cannot be monitored. Reason: {reason}".format(title=d['title'], reason=e.message)
                 continue
 
 
@@ -109,7 +109,7 @@ class AlertChecker:
                 self.responses.append(json.loads(contents))
         self.checkedExecuted = True
 
-    def get_reported_alerts(self):
+    def calculate_reported_alerts(self):
         alert_evaluation_result_list = []
         if not self.checkedExecuted:
             raise RuntimeError("method check() was not invoked, therefore there is nothing to report about. Fix it.")
@@ -122,7 +122,7 @@ class AlertChecker:
             # A grafana response could cover several sources/hosts.
             for source in response:
                 alert_evaluation_result = AlertEvaluationResult(title=self.title, target=source['target'])
-                # for now 'x' is the average of all not null data points.
+                # calculate 'x': for now 'x' is the average of all not null data points.
                 data = [m[0] for m in source['datapoints'] if m[0] is not None]
                 if len(data) > 0:
                     x = float(sum(data)) / len(data)
@@ -145,6 +145,7 @@ class AlertChecker:
 
 
 class DashboardScanner:
+    """Provides access to grafana dashboards"""
     def __init__(self, grafana_url, grafana_token):
         self.grafana_url = grafana_url
         self.grafana_token = grafana_token
@@ -189,38 +190,42 @@ class Dashboard:
             dashboard = jmespath.search('model.rows[*].panels[*]', data)
             return dashboard
         except ValueError:
-            raise NotMonitoreableDashboard( "The definition of dashboard {title} does not look like valid json.".format(title=self.title))
+            raise NotMonitoreableDashboard(
+                "The definition of dashboard {title} does not look like valid json.".format(title=self.title))
 
     def _create_alert_checkers(self, dashboard_info):
-        """check metrics and return a list of alerts to evaluate."""
+        """check metrics and return a list of alerts to evaluate.
+        :return AlertChecker list of all the metrics
+        """
         alert_checkers = []
         for dashboard_row in dashboard_info:
             print dashboard_row
-            # creates alert checkers from the row.
+            # creates alert checkers for each panel in the row.
             # TODO add alert checker creation to a builder dashboard_row2alert_checker_list.
             alert_conditions = []  # map of alert conditions( text -> alert parameters)
-            for row in dashboard_row:
-                print row
-                print row['type']
-                if row['type'] == "graph":
+            for panel in dashboard_row:
+                print panel
+                print panel['type']
+                if panel['type'] == "graph":
                     # print row['leftYAxisLabel']
                     # print row['y_formats']
-                    alert_checker = AlertChecker(self.grafana_url, self.grafana_token, row['title'], row['targets'])
+                    alert_checker = AlertChecker(self.grafana_url, self.grafana_token, panel['title'], panel['targets'])
                     alert_checkers.append(alert_checker)
-                elif row['type'] == "singlestat":
-                    alert_checker = AlertChecker(self.grafana_url, self.grafana_token, row['title'], row['targets'])
+                elif panel['type'] == "singlestat":
+                    alert_checker = AlertChecker(self.grafana_url, self.grafana_token, panel['title'], panel['targets'])
                     # print row['thresholds']
                     alert_checkers.append(alert_checker)
-                elif row['type'] == "text":
-                    if row['title'] == 'alerts':
-                        # read alert parameters to apply to all the alert checkers of this row.
-                        for line in row['content'].splitlines():
+                elif panel['type'] == "text":
+                    # print panel['title']
+                    if panel['title'] == 'alerts':
+                        # read alert parameters to apply to all the alert checkers of this dashboard.
+                        for line in panel['content'].splitlines():
                             # TODO replace alert_definition_list for an object
-                            alert_definition_list = [ s.strip() for s in line.split(';')]
+                            alert_definition_list = [s.strip() for s in line.split(';')]
                             if len(alert_definition_list) > 1:
                                 alert_conditions.append(alert_definition_list)
                 else:
-                    print "Unknown type {type}. Ignoring.".format(type=row['type'])
+                    print "Unknown type {type}. Ignoring.".format(type=panel['type'])
 
             if len(alert_conditions) > 0:
                 # There are alert conditions, add them to all the alert_checkers.
