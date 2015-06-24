@@ -223,7 +223,8 @@ class MailAlertReporter(BaseAlertReporter):
         alert_condition_style = {
             'normal':'color: darkgreen',
             'warning':'color: darkorange',
-            'critical':'color: darkred'
+            'critical': 'color: darkred',
+            'none': 'color: sienna'
         }
         html = ''
         for alert_event in alert_event_list:
@@ -242,20 +243,28 @@ class MailAlertReporter(BaseAlertReporter):
                     'alertName':'warning'
                 }
                 for version, alert_evaluation_result in {'old': alert_event['old'], 'current': alert_event['current']}.iteritems():
-                    if alert_evaluation_result is not None and alert_evaluation_result.current_alert_condition_status is not None:
-                        for k, v in alert_evaluation_result.current_alert_condition_status.iteritems():
-                            variables[version + '_' + k] = v
-                            # add known value in case 'old' or 'current' values are null, it keeps the last value
-                            variables[k] = v
+                    if alert_evaluation_result is not None:
+                        if alert_evaluation_result.current_alert_condition_status is not None:
+                            for k, v in alert_evaluation_result.current_alert_condition_status.iteritems():
+                                variables[version + '_' + k] = v
+                                # add known value in case 'old' or 'current' values are null, it keeps the last value
+                                variables[k] = v
+                        else:
+                            # current_alert_condition_status are none, add some default values for templates
+                            variables['title'] = '-'  # Bug? Panel title, it should be defined always
                         variables[version + '_target'] = alert_evaluation_result.target
                         variables[version + '_value'] = alert_evaluation_result.value
-                        variables[version + '_alertName'] = alert_evaluation_result.current_alert_condition_status['name']
+                        # variables[version + '_alertName'] = alert_evaluation_result.current_alert_condition_status['name']
+                        variables[version + '_alertName'] = alert_evaluation_result.current_alert_condition_status[
+                            'name'] if alert_evaluation_result.current_alert_condition_status is not None else 'none'
                         # variables['_date'] = datetime.datetime.now().strftime("%B %d, %Y"),
                         # variables['_time'] = datetime.datetime.now().strftime("%I:%M %p"),
                         # add known value in case 'old' or 'current' values are null, it keeps the last value
                         variables['target'] = alert_evaluation_result.target
                         variables['value'] = alert_evaluation_result.value
-                        variables['alertName'] = alert_evaluation_result.current_alert_condition_status['name']
+                        # variables['alertName'] = alert_evaluation_result.current_alert_condition_status['name']
+                        variables['alertName'] = alert_evaluation_result.current_alert_condition_status[
+                            'name'] if alert_evaluation_result.current_alert_condition_status is not None else 'none'
                 variables['diff_event'] = alert_event['diff_event']
 
                 # add styles for diff_event and alert event
