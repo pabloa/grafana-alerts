@@ -1,9 +1,9 @@
 Grafana Alert Module
 ====================
 
-Collects stats from a grafana server based in information available
-in Grafana Dashboards, compare those values to an alert table and
-throws alert emails in case it is needed.
+grafana-alerts Collects stats from a grafana server based on information available
+from the Grafana Dashboards. Then compare those values to an alert table and
+throws alert emails if the case is needed.
 
 Sites
 -----
