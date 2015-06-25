@@ -12,7 +12,7 @@ Installation package: https://pypi.python.org/pypi/grafana_alerts
 
 Project Home: https://github.com/pabloa/grafana-alerts
 
-Issues amd bugs: https://github.com/pabloa/grafana-alerts/issues
+Issues and bugs: https://github.com/pabloa/grafana-alerts/issues
 
 
 Installation
