@@ -94,5 +94,5 @@ Changes
 
 Version 1.0.0.dev5:
 
-* https://github.com/pabloa/grafana-alerts/issues/4 Runtime error when a grafana metric has not values.
-* renamed variables. Minor changes in emails.
+* [FIXED] https://github.com/pabloa/grafana-alerts/issues/4 Runtime error when a grafana metric has not values.
+* [MINOR] renamed variables. Minor changes in emails.

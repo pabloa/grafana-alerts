@@ -89,5 +89,10 @@ Here is an example:
 
 https://drive.google.com/a/ailive.net/file/d/0B1LiPvzYYFN0TTlBRnFlTG5Ya1E/view?pli=1
 
+Changes
+-------
 
+Version 1.0.0.dev5:
 
+* [FIXED] https://github.com/pabloa/grafana-alerts/issues/4 Runtime error when a grafana metric has not values.
+* [MINOR] renamed variables. Minor changes in emails.
