@@ -92,6 +92,10 @@ https://drive.google.com/a/ailive.net/file/d/0B1LiPvzYYFN0TTlBRnFlTG5Ya1E/view?p
 Changes
 -------
 
+Version 1.0.0.dev7:
+
+* [FIXED] https://github.com/pabloa/grafana-alerts/issues/7 KeyError: 'hide'
+
 Version 1.0.0.dev6:
 
 * [FIXED] https://github.com/pabloa/grafana-alerts/issues/4 Runtime error when a grafana metric has not values.

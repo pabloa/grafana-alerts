@@ -96,7 +96,7 @@ class AlertChecker:
     def check(self):
         """get metrics from grafana server"""
         for grafana_target in self.grafana_targets:
-            if not grafana_target['hide']:
+            if not hasattr(grafana_target, 'hide') or not grafana_target['hide']:
                 target = grafana_target['target']
                 post_parameters = "target={target}&from=-60s&until=now&format=json&maxDataPoints=100".format(
                     target=target)
